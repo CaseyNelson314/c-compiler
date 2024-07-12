@@ -3,17 +3,17 @@
 assert()
 {
     expected="$1"
-    input"$2"
+    input="$2"
 
     ./9cc "$input" > tmp.s
-    clang -o tmp tmp.s
+    cc -o tmp tmp.s
     ./tmp
     actual="$?"
 
     if [ "$actual" = "$expected" ]; then
         echo "$input => $actual"
     else
-        echo "$inpu => $expected expected, but got $actualt"
+        echo "$input => $expected expected, but got $actualt"
         exit 1
     fi
 }
