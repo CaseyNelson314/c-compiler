@@ -49,7 +49,7 @@ struct Token
     Token *next;
     int val;
     char *str;
-    int len;
+    size_t len;
 };
 
 Token *token;
@@ -92,13 +92,19 @@ bool at_eof()
 }
 
 // トークンを作成し、cur につなげる
-Token *new_token(TokenKind kind, Token *cur, char *str)
+Token *new_token(TokenKind kind, Token *cur, char *str, size_t len)
 {
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
+}
+
+bool startswith(char *src, char *tar)
+{
+    return strncmp(src, tar, strlen(tar)) == 0;
 }
 
 // p をトークナイズする
@@ -111,24 +117,33 @@ Token *tokenize(char *p)
     while (*p)
     {
 
-        // 空白文字スキップ
+        // space
         if (isspace(*p))
         {
             ++p;
             continue;
         }
 
-        // + - * /
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')')
+        // multi letter punctuator
+        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">="))
         {
-            cur = new_token(TK_RESERVED, cur, p);
-            ++p;
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
             continue;
         }
 
+        // single letter punctuator
+        if (strchr("+-*/()", *p))
+        {
+            cur = new_token(TK_RESERVED, cur, p, 1);
+            p += 1;
+            continue;
+        }
+
+        // integer
         if (isdigit(*p))
         {
-            cur = new_token(TK_NUM, cur, p);
+            cur = new_token(TK_NUM, cur, p, 0);
             cur->val = strtol(p, &p, 10); // strtol は p を数字列の後ろへインクリメントする効果がある
             continue;
         }
@@ -136,7 +151,7 @@ Token *tokenize(char *p)
         error_at(p, "トークナイズ出来ません");
     }
 
-    new_token(TK_EOF, cur, p);
+    new_token(TK_EOF, cur, p, 0);
 
     return head.next;
 }
@@ -182,8 +197,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
 
 Node *new_node_num(int val)
 {
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_NUM;
+    Node *node = new_node(ND_NUM, NULL, NULL);
     node->val = val;
     return node;
 }
@@ -245,8 +259,8 @@ Node *add()
     }
 }
 
-// elational = add ("<" add | "<=" add | ">" add | ">=" add)*
-Node *elational()
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+Node *relational()
 {
     Node *node = add();
 
@@ -254,8 +268,37 @@ Node *elational()
     {
         if (consume("<"))
             node = new_node(ND_LT, node, add());
-            // todo
+        else if (consume("<="))
+            node = new_node(ND_LE, node, add());
+        else if (consume(">"))
+            node = new_node(ND_LT, add(), node);
+        else if (consume(">="))
+            node = new_node(ND_LE, add(), node);
+        else
+            return node;
     }
+}
+
+// equality = relational ("==" relational | "!=" relational)*
+Node *equality()
+{
+    Node *node = relational();
+
+    for (;;)
+    {
+        if (consume("=="))
+            node = new_node(ND_EQ, node, relational());
+        else if (consume("!="))
+            node = new_node(ND_NE, node, relational());
+        else
+            return node;
+    }
+}
+
+// expr = equality
+Node *expr()
+{
+    return equality();
 }
 
 void gen(Node *node)
@@ -287,6 +330,8 @@ void gen(Node *node)
         printf("  cqo\n");
         printf("  idiv rdi\n");
         break;
+    case ND_EQ
+
     default:
         error("error");
     }

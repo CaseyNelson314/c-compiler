@@ -1,6 +1,6 @@
 # a simple c compiler
 
-https://www.sigbus.info/compilerbook
+<https://www.sigbus.info/compilerbook>
 
 ## build
 
