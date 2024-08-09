@@ -1,6 +1,6 @@
 CFLAGS=-std=c11 -g -static
 
-main: main.c parser.c tokenizer.c codegen.c
+main: main.c parser.c tokenizer.c codegen.c error.c
 
 test: main
 	./test.sh
