@@ -1,6 +1,12 @@
 CFLAGS=-std=c11 -g -static
+SRC=$(wildcard *.c)
+OBJ=$(SRC:.c=.o)
 
-main: main.c parser.c tokenizer.c codegen.c error.c
+main: $(OBJ)
+	$(CC) -o main $(OBJ) $(LDFLAGS)
+
+$(OBJ):
+	minc.h
 
 test: main
 	./test.sh
