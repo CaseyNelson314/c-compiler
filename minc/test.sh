@@ -13,7 +13,7 @@ assert()
     if [ "$actual" = "$expected" ]; then
         echo "$input => $actual"
     else
-        echo "$input => $expected expected, but got $actualt"
+        echo "$input => $expected expected, but got $actual"
         exit 1
     fi
 }
@@ -26,6 +26,7 @@ assert 10 "-10 + 20"
 assert 10 "-(-10)"
 assert 10 "- (+ (-10))"
 
+assert 1 "2 > 1"
 assert 1 "2 > 1"
 assert 0 "1 > 2"
 assert 0 "2 < 1"
