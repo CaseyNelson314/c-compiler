@@ -68,9 +68,35 @@ Token *new_token(TokenKind kind, Token *cur, char *str, size_t len)
     return tok;
 }
 
-bool startswith(char *src, char *tar)
+static bool startswith(char *src, char *tar)
 {
     return strncmp(src, tar, strlen(tar)) == 0;
+}
+
+static bool is_ident_head(char c)
+{
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_');
+}
+
+static bool is_ident_body(char c)
+{
+    return is_ident_head(c) || ('0' <= c && c <= '9');
+}
+
+static int is_ident(char *op)
+{
+    if (!is_ident_head(*op))
+        return 0;
+    else
+        ++op;
+
+    int len = 1;
+    while (is_ident_body(*op))
+    {
+        ++len;
+        ++op;
+    }
+    return len;
 }
 
 // p をトークナイズする
@@ -106,11 +132,12 @@ Token *tokenize(char *p)
             continue;
         }
 
-        // single letter identifier
-        if ('a' <= *p && *p <= 'z')
+        // identifier
+        int id_len = is_ident(p);
+        if (id_len)
         {
-            cur = new_token(TK_IDENT, cur, p, 1);
-            p += 1;
+            cur = new_token(TK_IDENT, cur, p, id_len);
+            p += id_len;
             continue;
         }
 

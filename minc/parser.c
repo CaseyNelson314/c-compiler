@@ -4,6 +4,7 @@
 //
 
 #include "minc.h"
+#include <string.h>
 
 static Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
 {
@@ -143,6 +144,22 @@ static Node *unary()
     return primary();
 }
 
+static LVar *local;
+LVar *find_lvar(Token *token)
+{
+    for (LVar *var = local; var; var = var->next)
+    {
+        if (var->len == token->len && strncmp(var->name, token->str, var->len) == 0)
+            return var;
+    }
+    return NULL;
+}
+
+LVar* new_lval(char* name)
+{
+
+}
+
 // primary = num | ident | "(" expr ")"
 static Node *primary()
 {
@@ -158,7 +175,25 @@ static Node *primary()
     {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
-        node->offset = (token->str[0] - 'a' + 1) * 8;
+
+        LVar *lvar = find_lvar(token);
+        if (lvar) // 既にローカル変数が定義されている場合
+        {
+            node->offset = lvar->offset;
+        }
+        else // 定義されていない場合、ローカル変数を線形リストへ登録
+        {
+            lvar = calloc(1, sizeof(LVar));
+            lvar->name = token->str;
+            lvar->len = token->len;
+            lvar->next = local;
+            if (local)
+                lvar->offset = local->offset + 8; // 暗黙的に int 型を割り当て
+            else
+                lvar->offset = 0;
+            node->offset = lvar->offset;
+            local = lvar;
+        }
         return node;
     }
 

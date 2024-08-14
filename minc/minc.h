@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -40,14 +40,13 @@ struct Token
     size_t len;
 };
 
-
 extern Token *token;
 
 // トークンを読み、期待した記号であるとき次へ進め真を返す
 bool consume(char *op);
 
 // トークンを読み、識別子であるとき次へ進め識別子のトークンを返す
-Token* consume_ident();
+Token *consume_ident();
 
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op);
@@ -61,6 +60,17 @@ bool at_eof();
 // p をトークナイズする
 Token *tokenize(char *p);
 
+// ローカル変数
+typedef struct LVar LVar;
+struct LVar
+{
+    LVar *next;
+    char *name;
+    size_t len;
+    int offset;
+};
+
+LVar* find_lvar(Token* token);
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -81,7 +91,7 @@ typedef enum
 
     ND_ASSIGN, // =
 
-    ND_LVAR,  // local variable
+    ND_LVAR, // local variable
 
     ND_NUM, // integer
 } NodeKind;
@@ -92,18 +102,17 @@ struct Node
 {
     NodeKind kind;
 
-    Node* next;  // プログラムに複数のステートメントが含まれる場合、このポインタを用いて線形リストを構成する
+    Node *next; // プログラムに複数のステートメントが含まれる場合、このポインタを用いて線形リストを構成する
 
-    Node *lhs;  // AST right hand side
-    Node *rhs;  // AST left  hand side
+    Node *lhs; // AST right hand side
+    Node *rhs; // AST left  hand side
 
-    int val;  // kind == ND_NUM
+    int val; // kind == ND_NUM
 
-    int offset;  // kind == ND_LVAR
+    int offset; // kind == ND_LVAR
 };
 
 Node *parse();
-
 
 ///////////////////////////////////////////////////////////////////////////
 //

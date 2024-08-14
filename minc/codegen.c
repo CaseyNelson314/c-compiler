@@ -23,17 +23,17 @@ void gen(Node *node)
         return;
     case ND_LVAR: // ローカル変数
         gen_lvalue(node);
-        printf("  pop rax\n");         // スタックポインタのアドレスを取得
-        printf("  mov rax, [rax] \n"); // アドレス先の値をロード
-        printf("  push rax\n");        // 値をプッシュ
+        printf("  pop rax\n");        // スタックポインタのアドレスを取得
+        printf("  mov rax, [rax]\n"); // アドレス先の値をロード
+        printf("  push rax\n");       // 値をプッシュ
         return;
     case ND_ASSIGN:
         gen_lvalue(node->lhs);
         gen(node->rhs);
-        printf("  pop rdi\n");         // 右辺値の値
-        printf("  pop rax\n");         // 左辺値のアドレス
-        printf("  mov [rax], rdi \n"); // 代入
-        printf("  push rdi\n");        // 代入は式であるため、値を返す必要がある
+        printf("  pop rdi\n");        // 右辺値の値
+        printf("  pop rax\n");        // 左辺値のアドレス
+        printf("  mov [rax], rdi\n"); // 代入
+        printf("  push rdi\n");       // 代入は式であるため、値を返す必要がある
         return;
     }
 
