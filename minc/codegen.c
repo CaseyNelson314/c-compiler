@@ -2,11 +2,38 @@
 
 #include <stdio.h>
 
+static void gen_lvalue(Node *node)
+{
+    if (node->kind != ND_LVAR)
+        error("代入の左辺値が変数ではありません");
+
+    printf("  mov rax, rbp\n");              // スタックベースポインタを取得
+    printf("  sub rax, %d\n", node->offset); // オフセット分スタックポインタを減算
+    printf("  push rax\n");                  // 得られたアドレス値を保存
+}
+
+// ASTをたどり、アセンブリを吐く
+// 評価結果をスタックにプッシュするアセンブリを生成する
 void gen(Node *node)
 {
-    if (node->kind == ND_NUM)
+    switch (node->kind)
     {
+    case ND_NUM:
         printf("  push %d\n", node->val);
+        return;
+    case ND_LVAR: // ローカル変数
+        gen_lvalue(node);
+        printf("  pop rax\n");         // スタックポインタのアドレスを取得
+        printf("  mov rax, [rax] \n"); // アドレス先の値をロード
+        printf("  push rax\n");        // 値をプッシュ
+        return;
+    case ND_ASSIGN:
+        gen_lvalue(node->lhs);
+        gen(node->rhs);
+        printf("  pop rdi\n");         // 右辺値の値
+        printf("  pop rax\n");         // 左辺値のアドレス
+        printf("  mov [rax], rdi \n"); // 代入
+        printf("  push rdi\n");        // 代入は式であるため、値を返す必要がある
         return;
     }
 

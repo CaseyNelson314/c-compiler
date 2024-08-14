@@ -5,7 +5,6 @@
 
 #include "minc.h"
 
-
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -22,9 +21,21 @@ int main(int argc, char *argv[])
     printf(".global main\n");
     printf("main:\n");
 
-    gen(node);
+    printf("  push rbp\n"); // ベースポインタを保持
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, 208\n"); // 領域を確保
 
-    printf("  pop rax\n");
+    while (node)
+    {
+        gen(node);
+
+        printf("  pop rax\n");
+
+        node = node->next;
+    }
+
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n"); // ベースポインタを復元
     printf("  ret\n");
 
     return 0;

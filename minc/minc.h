@@ -97,7 +97,9 @@ struct Node
     Node *lhs;  // AST right hand side
     Node *rhs;  // AST left  hand side
 
-    int val;
+    int val;  // kind == ND_NUM
+
+    int offset;  // kind == ND_LVAR
 };
 
 Node *parse();
