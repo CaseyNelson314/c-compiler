@@ -21,6 +21,16 @@ bool consume(char *op)
     return true;
 }
 
+// トークンを読み、識別子であるとき次へ進め識別子のトークンを返す
+Token *consume_ident()
+{
+    if (token->kind != TK_IDENT)
+        return NULL;
+    Token *curr = token;
+    token = token->next;
+    return curr;
+}
+
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op)
 {
@@ -92,6 +102,14 @@ Token *tokenize(char *p)
         if (strchr("+-*/()<>", *p))
         {
             cur = new_token(TK_RESERVED, cur, p, 1);
+            p += 1;
+            continue;
+        }
+
+        // single letter identifier
+        if ('a' <= *p && *p <= 'z')
+        {
+            cur = new_token(TK_IDENT, cur, p, 1);
             p += 1;
             continue;
         }

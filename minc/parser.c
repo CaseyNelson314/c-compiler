@@ -3,7 +3,6 @@
 //    パーサー
 //
 
-
 #include "minc.h"
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs)
@@ -22,7 +21,47 @@ Node *new_node_num(int val)
     return node;
 }
 
-// primary = num | "(" expr ")"
+Node *parse();
+Node *stmt();
+Node *expr();
+Node *assign();
+
+// program = stmt*
+Node *parse()
+{
+    Node head = {};
+    Node *cur = &head;
+    while (!at_eof())
+    {
+        cur = cur->next = stmt();
+    }
+    return head.next;
+}
+
+// stmt = expr ";"
+Node *stmt()
+{
+    Node *node = expr();
+    expect(";");
+    return node;
+}
+
+// expr = assign
+Node *expr()
+{
+    return assign();
+}
+
+// assign = equality ("=" assign)?
+Node *assign()
+{
+    Node *node = equality();
+    if (consume("="))
+        node = new_node(ND_ASSIGN, node, assign());
+    return node;
+}
+
+// primary = num | ident | "(" expr ")"
 Node *primary()
 {
     if (consume("("))
@@ -31,7 +70,6 @@ Node *primary()
         expect(")");
         return node;
     }
-
     return new_node_num(expect_number());
 }
 
