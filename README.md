@@ -10,11 +10,8 @@ cd c-compiler/minc
 make
 ```
 
-## run
+## unit test
 
 ```sh
-./main "1 + 20 - 10" > tmp.s
-cc -o tmp tmp.s
-./tmp
-echo $?
+make test
 ```
