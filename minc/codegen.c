@@ -12,7 +12,7 @@ static void gen_lvalue(Node *node)
     printf("  push rax\n");                  // 得られたアドレス値を保存
 }
 
-static int counter;
+static int label_counter;
 
 // ASTをたどり、アセンブリを吐く
 // 評価結果をスタックにプッシュするアセンブリを生成する
@@ -50,36 +50,75 @@ void gen(Node *node)
             gen(node->if_state);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lelse%d\n", counter); // 条件式が0である場合elseへ飛ばす
+            printf("  je .Lelse%d\n", label_counter); // 条件式が0である場合elseへ飛ばす
             gen(node->if_stmt);
-            printf("  jmp .Lend%d\n", counter);
-            printf(".Lelse%d:\n", counter);
+            printf("  jmp .Lend%d\n", label_counter);
+            printf(".Lelse%d:\n", label_counter);
             gen(node->else_stmt);
-            printf(".Lend%d:\n", counter);
+            printf(".Lend%d:\n", label_counter);
         }
         else // if ..
         {
             gen(node->if_state);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lend%d\n", counter); // 条件式が0である場合終了
+            printf("  je .Lend%d\n", label_counter); // 条件式が0である場合終了
             gen(node->if_stmt);
-            printf(".Lend%d:\n", counter);
+            printf(".Lend%d:\n", label_counter);
         }
-        counter++;
+        label_counter++;
         return;
 
     case ND_WHILE:
-        printf(".Lwhilebegin%d:\n", counter);
+        printf(".Lwhilebegin%d:\n", label_counter);
+
         gen(node->while_state);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lwhileend%d\n", counter);
+        printf("  je .Lwhileend%d\n", label_counter);
+
         gen(node->while_stmt);
+        printf("  pop rax\n"); // 評価値を捨てる
+        printf("  jmp .Lwhilebegin%d\n", label_counter);
+
+        printf(".Lwhileend%d:\n", label_counter);
+
+        printf("  push rax\n");
+        label_counter++;
+        return;
+
+    case ND_FOR:
+        if (node->for_init)
+        {
+            gen(node->for_init);
+            printf("  pop rdi\n");
+        }
+
+        printf(".Lforbegin%d:\n", label_counter); // ループ開始
+
+        if (node->for_cond)
+        {
+            gen(node->for_cond);
+            printf("  pop rdi\n");
+            printf("  cmp rdi, 0\n");
+            printf("  je .Lforend%d\n", label_counter); // 条件不成立で終了へジャンプ
+        }
+
+        gen(node->for_stmt);
         printf("  pop rax\n");
-        printf("  jmp .Lwhilebegin%d\n", counter);
-        printf(".Lwhileend%d:\n", counter);
-        counter++;
+
+        if (node->for_loop)
+        {
+            gen(node->for_loop);
+            printf("  pop rdi\n");  // for_stmtの評価値を残しておきたいのでrdiに捨てる
+        }
+
+        printf("  jmp .Lforbegin%d\n", label_counter); // 先頭へ戻る
+        printf(".Lforend%d:\n", label_counter);        // ループ終了
+
+        printf("  push rax\n");
+
+        label_counter++;
         return;
 
     case ND_NUM:

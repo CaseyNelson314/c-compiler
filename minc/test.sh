@@ -25,6 +25,8 @@ assert 2 "s = 0; if (s) 1; else 2;"
 
 assert 5 "i = 0; while (i < 5) i = i + 1; i;"
 
+assert 5 "for (n = 0; n < 5; n = n + 1) n; n;"
+
 assert 0 "0;"
 assert 42 "42;"
 assert 21 "5 + 20 - 4;"
@@ -44,9 +46,10 @@ assert 10 "return 10; return 20;"
 assert 10 "returna = 10; return returna;"
 
 assert 1 "2 > 1;"
-assert 1 "2 > 1;"
 assert 0 "1 > 2;"
+assert 0 "2 > 2;"
 assert 0 "2 < 1;"
+assert 0 "2 < 2;"
 assert 1 "1 < 2;"
 assert 1 "2 >= 1;"
 assert 0 "1 >= 2;"

@@ -85,6 +85,38 @@ static Node *stmt()
     }
 
     // "for" "(" expr? ";" expr? ";" expr? ")" stmt
+    if (consume(TK_FOR))
+    {
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_FOR;
+
+        expect("(");
+
+        if (!consume_punct(";")) // for ( の後 ; である場合、初期化式がない
+        {
+            // 初期化式有り
+            node->for_init = expr();
+            expect(";");
+        }
+
+        if (!consume_punct(";"))
+        {
+            // 条件式有り
+            node->for_cond = expr();
+            expect(";");
+        }
+
+        if (!consume_punct(")"))
+        {
+            // ループ式有り
+            node->for_loop = expr();
+            expect(")");
+        }
+
+        node->for_stmt = stmt();
+
+        return node;
+    }
 
     // "return" expr ";"
     if (consume(TK_RETURN))

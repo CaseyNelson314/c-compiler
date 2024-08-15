@@ -103,6 +103,7 @@ typedef enum
     ND_RETURN,
     ND_IF,
     ND_WHILE,
+    ND_FOR,
 
     ND_NUM, // integer
 } NodeKind;
@@ -128,6 +129,12 @@ struct Node
     // while
     Node *while_state;
     Node *while_stmt;
+
+    // for
+    Node *for_init;
+    Node *for_cond;
+    Node *for_loop;
+    Node *for_stmt;
 
     int val; // kind == ND_NUM
 
