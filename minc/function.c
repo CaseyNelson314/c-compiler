@@ -2,5 +2,5 @@
 
 int hogehoge()
 {
-    printf("OK\n");
+    return 123;
 }

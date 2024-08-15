@@ -264,9 +264,13 @@ LVar *new_lval(char *name)
 {
 }
 
+static Node *ident()
+{
+}
+
 // primary = num
 //         | ident
-//         | ident ("(" ")")?
+//         | ident ("(" (ident)* ")")?
 //         | "(" expr ")"
 static Node *primary()
 {
@@ -278,7 +282,6 @@ static Node *primary()
         return node;
     }
 
-    // ident
     Token *token = consume(TK_IDENT);
     if (token)
     {
@@ -288,6 +291,15 @@ static Node *primary()
             Node *node = new_node(ND_FUNC_CALL);
             node->func_name = token->str;
             node->func_name_len = token->len;
+
+            // while (1)
+            // {
+            //     Node* node = primary();
+            //     if (!consume_punct(","))
+            //     {
+            //         expect(")");
+            //     }
+            // }
             expect(")");
             return node;
         }

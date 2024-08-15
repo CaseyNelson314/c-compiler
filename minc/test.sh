@@ -6,7 +6,7 @@ assert()
     input="$2"
 
     ./main "$input" > tmp.s
-    cc -o tmp tmp.s
+    cc -o tmp tmp.s function.c
     ./tmp
     actual="$?"
 
@@ -17,6 +17,8 @@ assert()
         exit 1
     fi
 }
+
+assert 123 "hogehoge();hogehoge();hogehoge();hogehoge();"
 
 assert 1 "if (1) 1; else 2;"
 assert 2 "if (0) 1; else 2;"
