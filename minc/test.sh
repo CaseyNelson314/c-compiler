@@ -18,6 +18,13 @@ assert()
     fi
 }
 
+assert 1 "if (1) 1; else 2;"
+assert 2 "if (0) 1; else 2;"
+assert 1 "s = 1; if (s) 1;"
+assert 2 "s = 0; if (s) 1; else 2;"
+
+assert 5 "i = 0; while (i < 5) i = i + 1; i;"
+
 assert 0 "0;"
 assert 42 "42;"
 assert 21 "5 + 20 - 4;"
@@ -30,7 +37,11 @@ assert 0 "a = 0; a;"
 assert 100 "a = b = 100;"
 assert 120 "a = 100; b = 20; a + b;"
 assert 1 "a = 1; aa = 2; a;"
-assert 3 "aa = 10;bb = 20;cc = aa * bb;cc = cc / 10;cc;"
+assert 20 "aa = 10;bb = 20;cc = aa * bb;cc = cc / 10;cc;"
+
+assert 10 "return 10;"
+assert 10 "return 10; return 20;"
+assert 10 "returna = 10; return returna;"
 
 assert 1 "2 > 1;"
 assert 1 "2 > 1;"

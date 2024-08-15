@@ -11,24 +11,26 @@
 Token *token;
 
 // トークンを読み、期待した記号であるとき次へ進め真を返す
-bool consume(char *op)
+bool consume_punct(char *op)
 {
     if (token->kind != TK_RESERVED ||
         strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
+        strncmp(token->str, op, token->len))
         return false;
     token = token->next;
     return true;
 }
 
-// トークンを読み、識別子であるとき次へ進め識別子のトークンを返す
-Token *consume_ident()
+// トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL
+Token *consume(TokenKind kind)
 {
-    if (token->kind != TK_IDENT)
-        return NULL;
-    Token *curr = token;
-    token = token->next;
-    return curr;
+    if (token->kind == kind)
+    {
+        Token *cur = token;
+        token = token->next;
+        return cur;
+    }
+    return NULL;
 }
 
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
@@ -108,11 +110,50 @@ Token *tokenize(char *p)
 
     while (*p)
     {
-
         // space
         if (isspace(*p))
         {
-            ++p;
+            p += 1;
+            continue;
+        }
+
+        // if
+        if (!strncmp(p, "if", 2) && !is_ident_body(p[2]))
+        {
+            cur = new_token(TK_IF, cur, p, 2);
+            p += 2;
+            continue;
+        }
+
+        // else
+        if (!strncmp(p, "else", 4) && !is_ident_body(p[4]))
+        {
+            cur = new_token(TK_ELSE, cur, p, 4);
+            p += 4;
+            continue;
+        }
+
+        // while
+        if (!strncmp(p, "while", 5) && !is_ident_body(p[5]))
+        {
+            cur = new_token(TK_WHILE, cur, p, 5);
+            p += 5;
+            continue;
+        }
+
+        // for
+        if (!strncmp(p, "for", 3) && !is_ident_body(p[3]))
+        {
+            cur = new_token(TK_FOR, cur, p, 3);
+            p += 3;
+            continue;
+        }
+
+        // return
+        if (!strncmp(p, "return", 6) && !is_ident_body(p[6]))
+        {
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p += 6;
             continue;
         }
 

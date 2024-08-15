@@ -26,7 +26,14 @@ typedef enum
     TK_RESERVED, // 記号
     TK_IDENT,    // 識別子
     TK_NUM,      // 整数トークン
-    TK_EOF,      // 入力の終わりを表すトークン
+
+    TK_RETURN,
+    TK_IF,
+    TK_ELSE,
+    TK_WHILE,
+    TK_FOR,
+
+    TK_EOF, // 入力の終わりを表すトークン
 } TokenKind;
 
 typedef struct Token Token;
@@ -43,10 +50,10 @@ struct Token
 extern Token *token;
 
 // トークンを読み、期待した記号であるとき次へ進め真を返す
-bool consume(char *op);
+bool consume_punct(char *op);
 
-// トークンを読み、識別子であるとき次へ進め識別子のトークンを返す
-Token *consume_ident();
+// トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL
+Token *consume(TokenKind kind);
 
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op);
@@ -70,7 +77,7 @@ struct LVar
     int offset;
 };
 
-LVar* find_lvar(Token* token);
+LVar *find_lvar(Token *token);
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -93,6 +100,10 @@ typedef enum
 
     ND_LVAR, // local variable
 
+    ND_RETURN,
+    ND_IF,
+    ND_WHILE,
+
     ND_NUM, // integer
 } NodeKind;
 
@@ -106,6 +117,17 @@ struct Node
 
     Node *lhs; // AST right hand side
     Node *rhs; // AST left  hand side
+
+    // if
+    Node *if_state;
+    Node *if_stmt;
+
+    // else
+    Node *else_stmt;
+
+    // while
+    Node *while_state;
+    Node *while_stmt;
 
     int val; // kind == ND_NUM
 
