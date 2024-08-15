@@ -105,6 +105,8 @@ typedef enum
     ND_WHILE,
     ND_FOR,
 
+    ND_BLOCK,  // statment group
+
     ND_NUM, // integer
 } NodeKind;
 
@@ -116,8 +118,9 @@ struct Node
 
     Node *next; // プログラムに複数のステートメントが含まれる場合、このポインタを用いて線形リストを構成する
 
-    Node *lhs; // AST right hand side
-    Node *rhs; // AST left  hand side
+    // ast
+    Node *lhs;
+    Node *rhs;
 
     // if
     Node *if_state;
@@ -135,6 +138,10 @@ struct Node
     Node *for_cond;
     Node *for_loop;
     Node *for_stmt;
+
+    // block
+    Node* block[100];
+    int block_len;
 
     int val; // kind == ND_NUM
 

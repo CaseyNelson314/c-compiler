@@ -45,12 +45,29 @@ Node *parse()
 }
 
 // stmt = expr ";"
+//      | "{" stmt* "}"
 //      | "if" "(" expr ")" stmt ("else" stmt)?
 //      | "while" "(" expr ")" stmt
 //      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //      | "return" expr ";"
 static Node *stmt()
 {
+    // "{" stmt* "}"
+    if (consume_punct("{"))
+    {
+        // ステートメントの線形リストを構築
+        Node* node = calloc(1, sizeof(Node));
+        node->kind = ND_BLOCK;
+
+        while (!consume_punct("}"))
+        {
+            node->block[node->block_len] = stmt();
+            ++node->block_len;
+        }
+
+        return node;
+    }
+
     // "if" "(" expr ")" stmt ("else" stmt)?
     if (consume(TK_IF))
     {
