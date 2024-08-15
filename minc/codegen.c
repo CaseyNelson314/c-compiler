@@ -127,6 +127,7 @@ void gen(Node *node)
             gen(node->block[i]);
             printf("  pop rax\n");
         }
+        printf("  push rax\n");
         return;
 
     case ND_NUM:

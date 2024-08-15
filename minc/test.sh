@@ -27,6 +27,8 @@ assert 5 "i = 0; while (i < 5) i = i + 1; i;"
 
 assert 5 "for (n = 0; n < 5; n = n + 1) n; n;"
 
+assert 6 "{ 2; 3; 4; { 5; 6; } }"
+
 assert 0 "0;"
 assert 42 "42;"
 assert 21 "5 + 20 - 4;"
