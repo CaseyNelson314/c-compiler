@@ -107,6 +107,8 @@ typedef enum
 
     ND_BLOCK,  // statment group
 
+    ND_FUNC_CALL,  // function call
+
     ND_NUM, // integer
 } NodeKind;
 
@@ -142,6 +144,10 @@ struct Node
     // block
     Node* block[100];
     int block_len;
+
+    // function call
+    char* func_name;
+    int func_name_len;
 
     int val; // kind == ND_NUM
 
