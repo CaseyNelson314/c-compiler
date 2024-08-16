@@ -28,6 +28,53 @@ static Node *new_node_num(int val)
     return node;
 }
 
+
+static LVar *local;
+static LVar *find_lvar(Token *token)
+{
+    for (LVar *var = local; var; var = var->next)
+    {
+        if (var->len == token->len && strncmp(var->name, token->str, var->len) == 0)
+            return var;
+    }
+    return NULL;
+}
+
+static int new_lval(char *name, size_t len)
+{
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->name = name;
+    lvar->len = len;
+    
+    if (local)
+        lvar->offset = local->offset + 8; // 暗黙的に int 型を割り当て
+    else
+        lvar->offset = 0;
+
+    // 先頭へ自身を追加
+    lvar->next = local;
+    local = lvar;
+
+    return lvar->offset;
+}
+
+static Node* new_node_local(char* name, size_t len)
+{
+    Node *node = new_node(ND_LVAR);
+
+    LVar *lvar = find_lvar(token);
+    if (lvar) // 既にローカル変数が定義されている場合
+    {
+        node->offset = lvar->offset;
+    }
+    else // 定義されていない場合、ローカル変数を登録
+    {
+        node->offset = new_lval(token->str, token->len);
+    }
+
+    return node;
+}
+
 static Node *stmt();
 static Node *expr();
 static Node *assign();
@@ -144,7 +191,8 @@ static Node *stmt()
     // "return" expr ";"
     if (consume(TK_RETURN))
     {
-        Node *node = new_node_binary(ND_RETURN, expr(), NULL);
+        Node *node = new_node(ND_RETURN);
+        node->return_expr = expr();
         expect(";");
         return node;
     }
@@ -249,21 +297,6 @@ static Node *unary()
     return primary();
 }
 
-static LVar *local;
-LVar *find_lvar(Token *token)
-{
-    for (LVar *var = local; var; var = var->next)
-    {
-        if (var->len == token->len && strncmp(var->name, token->str, var->len) == 0)
-            return var;
-    }
-    return NULL;
-}
-
-LVar *new_lval(char *name)
-{
-}
-
 static Node *ident()
 {
 }
@@ -306,27 +339,7 @@ static Node *primary()
         else
         {
             // ローカル変数
-            Node *node = new_node(ND_LVAR);
-
-            LVar *lvar = find_lvar(token);
-            if (lvar) // 既にローカル変数が定義されている場合
-            {
-                node->offset = lvar->offset;
-            }
-            else // 定義されていない場合、ローカル変数を線形リストへ登録
-            {
-                lvar = calloc(1, sizeof(LVar));
-                lvar->name = token->str;
-                lvar->len = token->len;
-                lvar->next = local;
-                if (local)
-                    lvar->offset = local->offset + 8; // 暗黙的に int 型を割り当て
-                else
-                    lvar->offset = 0;
-                node->offset = lvar->offset;
-                local = lvar;
-            }
-            return node;
+            return new_node_local(token->str, token->len);
         }
     }
 

@@ -77,7 +77,7 @@ struct LVar
     int offset;
 };
 
-LVar *find_lvar(Token *token);
+// LVar *find_lvar(Token *token);
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -123,6 +123,9 @@ struct Node
     // ast
     Node *lhs;
     Node *rhs;
+
+    // return
+    Node* return_expr;
 
     // if
     Node *if_state;
