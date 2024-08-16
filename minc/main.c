@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     while (node)
     {
         gen(node);
-        printf("  pop rax\n");
         node = node->next;
     }
 
