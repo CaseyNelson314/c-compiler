@@ -28,10 +28,12 @@ void gen(Node *node)
     case ND_ASSIGN:
         // 左辺値を rdi
         gen_lvalue(node->lhs);
-        printf("  mov rdi, rax\n");
+        printf("  push rax\n");
 
         // 右辺値を rax
         gen(node->rhs);
+
+        printf("  pop rdi\n");
 
         // 代入
         printf("  mov [rdi], rax\n");
@@ -96,7 +98,7 @@ void gen(Node *node)
         if (node->for_cond)
         {
             gen(node->for_cond);
-            printf("  cmp rdi, 0\n");
+            printf("  cmp rax, 0\n");
             printf("  je .Lfor.end%d\n", label_counter); // 条件不成立で終了へジャンプ
         }
 
@@ -131,8 +133,9 @@ void gen(Node *node)
     }
 
     gen(node->rhs);  // -> rdi
-    printf("  mov rdi, rax\n");
+    printf("  push rax\n");
     gen(node->lhs);  // -> rax
+    printf("  pop rdi\n");
 
     switch (node->kind)
     {
