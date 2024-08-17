@@ -93,7 +93,7 @@ Node *parse()
     return head.next;
 }
 
-// stmt = expr ";"
+// stmt = expr? ";"
 //      | "{" stmt* "}"
 //      | "if" "(" expr ")" stmt ("else" stmt)?
 //      | "while" "(" expr ")" stmt
@@ -193,12 +193,18 @@ static Node *stmt()
         return node;
     }
 
-    // expr ";"
+    // expr? ";"
+    if (skip(";"))
+    {
+        return new_node(ND_NULL);
+    }
+    else
     {
         Node *node = expr();
         expect(";");
         return node;
     }
+   
 }
 
 // expr = assign

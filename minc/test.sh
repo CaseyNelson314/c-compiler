@@ -33,10 +33,9 @@ assert()
     fi
 }
 
-assert 6 "sum(1,1,1,1,1,1);"
-assert 6 "a=b=c=d=e=f=1; sum(a,b,c,d,e,f);"
-assert 11 "sum(sum(1,1,1,1,1,1),1,1,1,1,1);"
-assert 16 "sum(sum(sum(1,1,1,1,1,1),1,1,1,1,1),1,1,1,1,1);"
+assert 1 ";; 1;"
+assert 2 "{ ;; };; { ;; } ;; 2;"
+assert 1 "if (1) ; 1;"
 
 assert 0 "0;"
 assert 42 "42;"
@@ -88,5 +87,10 @@ assert 5 "for (n = 0; n < 5; n = n + 1) n; n;"
 assert 6 "{ 2; 3; 4; { 5; 6; } }"
 
 assert 123 "hogehoge();hogehoge();hogehoge();hogehoge();"
+
+assert 6 "sum(1,1,1,1,1,1);"
+assert 6 "a=b=c=d=e=f=1; sum(a,b,c,d,e,f);"
+assert 11 "sum(sum(1,1,1,1,1,1),1,1,1,1,1);"
+assert 16 "sum(sum(sum(1,1,1,1,1,1),1,1,1,1,1),1,1,1,1,1);"
 
 echo OK

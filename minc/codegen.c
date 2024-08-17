@@ -159,6 +159,9 @@ void gen(Node *node)
         return;
     }
 
+    case ND_NULL:
+        return;
+
     case ND_NUM:
         println("  mov rax, %d", node->val);
 

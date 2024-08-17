@@ -114,6 +114,8 @@ typedef enum
 
     ND_IDENT,
 
+    ND_NULL, // null statment
+
     ND_NUM, // integer
 } NodeKind;
 
