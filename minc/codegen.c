@@ -159,6 +159,33 @@ void gen(Node *node)
         return;
     }
 
+    case ND_FUNC_DEF:
+
+        println("%.*s:", node->id_len, node->id_name); // 関数定義
+
+        println("  push rbp"); // ベースポインタを保持
+        println("  mov rbp, rsp");
+        println("  sub rsp, 208"); // スタック領域を確保
+
+        // 第1~第6引数 : RDI, RSI, RDX, RCX, R8, R9
+        const char *arg_reg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+        int index = 0;
+
+        for (Node *cur = node->func_idents; cur; cur = cur->next)
+        {
+            gen_lvalue(cur);
+            println("  mov [rax], %s", arg_reg[index]);
+            ++index;
+        }
+
+        gen(node->func_stmt);
+
+        println("  mov rsp, rbp");
+        println("  pop rbp"); // ベースポインタを復元
+        println("  ret");
+
+        return;
+
     case ND_NULL:
         return;
 

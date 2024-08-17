@@ -57,9 +57,11 @@ static int new_lval(Token *tok)
     return lvar->offset;
 }
 
-static Node *new_node_local(Token *tok)
+static Node *new_node_local()
 {
     Node *node = new_node(ND_LVAR);
+
+    Token* tok = expect_ident();
 
     LVar *lvar = find_lvar(tok);
 
@@ -71,7 +73,16 @@ static Node *new_node_local(Token *tok)
     return node;
 }
 
+static Node *new_node_ident(Token *id_tok, TokenKind kind)
+{
+    Node *node = new_node(kind);
+    node->id_name = id_tok->str;
+    node->id_len = id_tok->len;
+    return node;
+}
+
 static Node *stmt();
+static Node *funcdef();
 static Node *expr();
 static Node *assign();
 static Node *equality();
@@ -81,16 +92,50 @@ static Node *mul();
 static Node *unary();
 static Node *primary();
 
-// program = stmt*
+// program = (function-definition)*
 Node *parse()
 {
     Node head = {};
     Node *cur = &head;
     while (!at_eof())
     {
-        cur = cur->next = stmt();
+        cur = cur->next = funcdef();
     }
     return head.next;
+}
+
+// identlist = ident ("," ident)*
+static Node *identlist()
+{
+    // 引数はローカル変数として定義されるものとする
+
+    Node *head = new_node_local();
+    Node *cur = head;
+
+    while (skip(","))
+    {
+        cur = cur->next = new_node_local();
+    }
+
+    return head;
+}
+
+// function-definition = ident "(" identlist? ")" stmt
+static Node *funcdef()
+{
+    Node *node = new_node_ident(expect_ident(), ND_FUNC_DEF);
+
+    expect("(");
+
+    if (!skip(")"))
+    {
+        node->func_idents = identlist();
+        expect(")");
+    }
+
+    node->func_stmt = stmt();
+
+    return node;
 }
 
 // stmt = expr? ";"
@@ -118,7 +163,7 @@ static Node *stmt()
     }
 
     // "if" "(" expr ")" stmt ("else" stmt)?
-    if (consume(TK_IF))
+    if (consume_kind(TK_IF))
     {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
@@ -128,7 +173,7 @@ static Node *stmt()
         expect(")");
         node->if_stmt = stmt();
 
-        if (consume(TK_ELSE))
+        if (consume_kind(TK_ELSE))
         {
             node->else_stmt = stmt();
         }
@@ -137,7 +182,7 @@ static Node *stmt()
     }
 
     // "while" "(" expr ")" stmt
-    if (consume(TK_WHILE))
+    if (consume_kind(TK_WHILE))
     {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;
@@ -151,7 +196,7 @@ static Node *stmt()
     }
 
     // "for" "(" expr? ";" expr? ";" expr? ")" stmt
-    if (consume(TK_FOR))
+    if (consume_kind(TK_FOR))
     {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
@@ -185,7 +230,7 @@ static Node *stmt()
     }
 
     // "return" expr ";"
-    if (consume(TK_RETURN))
+    if (consume_kind(TK_RETURN))
     {
         Node *node = new_node(ND_RETURN);
         node->return_expr = expr();
@@ -204,7 +249,6 @@ static Node *stmt()
         expect(";");
         return node;
     }
-   
 }
 
 // expr = assign
@@ -315,12 +359,9 @@ struct Node *funcarg()
 }
 
 // funccall = ident "(" funcarg? ")"
-struct Node *funccall(Token *id_tok)
+struct Node *funccall()
 {
-    Node *node = new_node(ND_FUNC_CALL);
-
-    node->id_name = id_tok->str;
-    node->id_len = id_tok->len;
+    Node *node = new_node_ident(expect_ident(), ND_FUNC_CALL);
 
     expect("(");
 
@@ -337,7 +378,7 @@ struct Node *funccall(Token *id_tok)
 
 // primary = num
 //         | ident
-//         | ident ("(" function_args ")")?
+//         | ident ("(" function_args? ")")
 //         | "(" expr ")"
 static Node *primary()
 {
@@ -349,17 +390,16 @@ static Node *primary()
         return node;
     }
 
-    Token *tok = consume(TK_IDENT);
-    if (tok)
+    if (equal_kind(TK_IDENT))
     {
-        if (equal("("))
+        if (equal(token->next, "("))
         {
             // 関数呼び出し
-            return funccall(tok);
+            return funccall();
         }
 
         // ローカル変数
-        return new_node_local(tok);
+        return new_node_local();
     }
 
     return new_node_num(expect_number());

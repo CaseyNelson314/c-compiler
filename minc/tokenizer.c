@@ -10,17 +10,22 @@
 
 Token *token;
 
-bool equal(char *op)
+bool equal(Token* tok, char *op)
 {
-    return token->kind == TK_PUNCT &&
-           strlen(op) == token->len &&
-           strncmp(token->str, op, token->len) == 0;
+    return tok->kind == TK_PUNCT &&
+           strlen(op) == tok->len &&
+           strncmp(tok->str, op, tok->len) == 0;
+}
+
+bool equal_kind(TokenKind kind)
+{
+    return token->kind == kind;
 }
 
 // トークンを読み、期待した記号であるとき次へ進め真を返す
 bool skip(char *op)
 {
-    if (equal(op))
+    if (equal(token, op))
     {
         token = token->next;
         return true;
@@ -29,7 +34,7 @@ bool skip(char *op)
 }
 
 // トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL
-Token *consume(TokenKind kind)
+Token *consume_kind(TokenKind kind)
 {
     if (token->kind == kind)
     {
@@ -43,7 +48,7 @@ Token *consume(TokenKind kind)
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op)
 {
-    if (equal(op))
+    if (equal(token, op))
         token = token->next;
     else
         error_at(token->str, "'%s'ではありません", op);
@@ -57,6 +62,15 @@ int expect_number()
     int val = token->val;
     token = token->next;
     return val;
+}
+
+Token* expect_ident()
+{
+    if (token->kind != TK_IDENT)
+        error_at(token->str, "識別子ではありません");
+    Token* cur = token;
+    token = token->next;
+    return cur;
 }
 
 // トークンを読み、末端である場合真を返す

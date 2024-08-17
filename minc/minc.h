@@ -24,8 +24,8 @@ void error_at(char *loc, char *fmt, ...);
 typedef enum
 {
     TK_PUNCT, // 記号
-    TK_IDENT,    // 識別子
-    TK_NUM,      // 整数トークン
+    TK_IDENT, // 識別子
+    TK_NUM,   // 整数トークン
 
     TK_RETURN,
     TK_IF,
@@ -50,19 +50,24 @@ struct Token
 extern Token *token;
 
 // トークンを読み、期待した記号であるとき真を返す
-bool equal(char *op);
+bool equal(Token* tok, char *op);
+
+// トークンを読み、期待した記号であるとき真を返す
+bool equal_kind(TokenKind kind);
 
 // トークンを読み、期待した記号であるとき次へ進め真を返す
 bool skip(char *op);
 
 // トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL
-Token *consume(TokenKind kind);
+Token *consume_kind(TokenKind kind);
 
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op);
 
 // トークンを読み、数である場合それを返す。数でない場合エラーを報告する
 int expect_number();
+
+Token *expect_ident();
 
 // トークンを読み、末端である場合真を返す
 bool at_eof();
@@ -108,9 +113,10 @@ typedef enum
     ND_WHILE,
     ND_FOR,
 
-    ND_BLOCK,  // statment group
+    ND_BLOCK, // statment group
 
-    ND_FUNC_CALL,  // function call
+    ND_FUNC_CALL, // function call
+    ND_FUNC_DEF,  // function definition
 
     ND_IDENT,
 
@@ -132,7 +138,7 @@ struct Node
     Node *rhs;
 
     // return
-    Node* return_expr;
+    Node *return_expr;
 
     // if
     Node *if_state;
@@ -152,14 +158,18 @@ struct Node
     Node *for_stmt;
 
     // block
-    Node* block[100];
+    Node *block[100];
     int block_len;
 
     // functon call
-    Node* func_args;
+    Node *func_args;
+
+    // function definition
+    Node *func_idents;
+    Node *func_stmt;
 
     // identifier (function, [variable: todo])
-    char* id_name;
+    char *id_name;
     int id_len;
 
     int val; // kind == ND_NUM
