@@ -142,7 +142,7 @@ void gen(Node *node)
         return;
 
     case ND_FUNC_CALL:
-
+    {
         // 第1~第6引数 : RDI, RSI, RDX, RCX, R8, R9
         const char *arg_reg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
         int index = 0;
@@ -157,6 +157,7 @@ void gen(Node *node)
         println("  call %.*s", node->id_len, node->id_name);
 
         return;
+    }
 
     case ND_NUM:
         println("  mov rax, %d", node->val);

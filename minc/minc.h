@@ -23,7 +23,7 @@ void error_at(char *loc, char *fmt, ...);
 
 typedef enum
 {
-    TK_RESERVED, // 記号
+    TK_PUNCT, // 記号
     TK_IDENT,    // 識別子
     TK_NUM,      // 整数トークン
 

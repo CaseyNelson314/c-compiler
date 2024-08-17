@@ -12,7 +12,7 @@ Token *token;
 
 bool equal(char *op)
 {
-    return token->kind == TK_RESERVED &&
+    return token->kind == TK_PUNCT &&
            strlen(op) == token->len &&
            strncmp(token->str, op, token->len) == 0;
 }
@@ -43,11 +43,10 @@ Token *consume(TokenKind kind)
 // トークンを読み、期待した記号であるとき次へ進め、それ以外の場合エラーを報告する
 void expect(char *op)
 {
-    if (token->kind != TK_RESERVED ||
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
+    if (equal(op))
+        token = token->next;
+    else
         error_at(token->str, "'%s'ではありません", op);
-    token = token->next;
 }
 
 // トークンを読み、数である場合それを返す。数でない場合エラーを報告する
@@ -167,7 +166,7 @@ Token *tokenize(char *p)
         // multi letter punctuator
         if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">="))
         {
-            cur = new_token(TK_RESERVED, cur, p, 2);
+            cur = new_token(TK_PUNCT, cur, p, 2);
             p += 2;
             continue;
         }
@@ -175,7 +174,7 @@ Token *tokenize(char *p)
         // single letter punctuator
         if (strchr("+-*/=()<>{};,", *p))
         {
-            cur = new_token(TK_RESERVED, cur, p, 1);
+            cur = new_token(TK_PUNCT, cur, p, 1);
             p += 1;
             continue;
         }
