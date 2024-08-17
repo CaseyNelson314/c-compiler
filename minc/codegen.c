@@ -45,7 +45,7 @@ void gen(Node *node)
         return;
 
     case ND_RETURN:
-        gen(node->lhs); // 左辺にreturnに続く式が来る 右辺はNULL
+        gen(node->return_expr);
         printf("  mov rsp, rbp\n"); // スタックポインタを復元
         printf("  pop rbp\n");      // ベースポインタを復元
         printf("  ret\n");
