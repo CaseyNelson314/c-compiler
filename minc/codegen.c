@@ -123,7 +123,20 @@ void gen(Node *node)
         return;
 
     case ND_FUNC_CALL:
-        printf("  call %.*s\n", node->func_name_len, node->func_name);
+    
+        // 第1~第6引数 : RDI, RSI, RDX, RCX, R8, R9
+        const char* arg_reg[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+        int index = 0;
+
+        for (Node* cur = node->func_args; cur; cur = cur->next)
+        {
+            gen(cur);
+            printf("  mov %s, rax\n", arg_reg[index]);
+            ++index;
+        }
+
+        printf("  call %.*s\n", node->id_len, node->id_name);
+
         return;
 
     case ND_NUM:

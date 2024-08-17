@@ -33,6 +33,10 @@ assert()
     fi
 }
 
+assert 6 "sum(1,1,1,1,1,1);"
+assert 11 "sum(sum(1,1,1,1,1,1),1,1,1,1,1);"
+assert 16 "sum(sum(sum(1,1,1,1,1,1),1,1,1,1,1),1,1,1,1,1);"
+
 assert 0 "0;"
 assert 42 "42;"
 assert 2 "1 + 1;"

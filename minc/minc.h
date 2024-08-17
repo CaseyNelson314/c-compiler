@@ -49,8 +49,11 @@ struct Token
 
 extern Token *token;
 
+// トークンを読み、期待した記号であるとき真を返す
+bool equal(char *op);
+
 // トークンを読み、期待した記号であるとき次へ進め真を返す
-bool consume_punct(char *op);
+bool skip(char *op);
 
 // トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL
 Token *consume(TokenKind kind);
@@ -109,6 +112,8 @@ typedef enum
 
     ND_FUNC_CALL,  // function call
 
+    ND_IDENT,
+
     ND_NUM, // integer
 } NodeKind;
 
@@ -148,9 +153,12 @@ struct Node
     Node* block[100];
     int block_len;
 
-    // function call
-    char* func_name;
-    int func_name_len;
+    // functon call
+    Node* func_args;
+
+    // identifier (function, [variable: todo])
+    char* id_name;
+    int id_len;
 
     int val; // kind == ND_NUM
 

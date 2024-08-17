@@ -10,15 +10,22 @@
 
 Token *token;
 
-// トークンを読み、期待した記号であるとき次へ進め真を返す
-bool consume_punct(char *op)
+bool equal(char *op)
 {
-    if (token->kind != TK_RESERVED ||
-        strlen(op) != token->len ||
-        strncmp(token->str, op, token->len))
-        return false;
-    token = token->next;
-    return true;
+    return token->kind == TK_RESERVED &&
+           strlen(op) == token->len &&
+           strncmp(token->str, op, token->len) == 0;
+}
+
+// トークンを読み、期待した記号であるとき次へ進め真を返す
+bool skip(char *op)
+{
+    if (equal(op))
+    {
+        token = token->next;
+        return true;
+    }
+    return false;
 }
 
 // トークンを読み、期待したトークンであるときトークンを返し次へ進める それ以外はNULL

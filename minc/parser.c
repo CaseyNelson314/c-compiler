@@ -102,13 +102,13 @@ Node *parse()
 static Node *stmt()
 {
     // "{" stmt* "}"
-    if (consume_punct("{"))
+    if (skip("{"))
     {
         // ステートメントの線形リストを構築
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
 
-        while (!consume_punct("}"))
+        while (!skip("}"))
         {
             node->block[node->block_len] = stmt();
             ++node->block_len;
@@ -158,21 +158,21 @@ static Node *stmt()
 
         expect("(");
 
-        if (!consume_punct(";")) // for ( の直後 ; である場合、初期化式がない
+        if (!skip(";")) // for ( の直後 ; である場合、初期化式がない
         {
             // 初期化式有り
             node->for_init = expr();
             expect(";");
         }
 
-        if (!consume_punct(";"))
+        if (!skip(";"))
         {
             // 条件式有り
             node->for_cond = expr();
             expect(";");
         }
 
-        if (!consume_punct(")"))
+        if (!skip(")"))
         {
             // ループ式有り
             node->for_loop = expr();
@@ -211,7 +211,7 @@ static Node *expr()
 static Node *assign()
 {
     Node *node = equality();
-    if (consume_punct("="))
+    if (skip("="))
         node = new_node_binary(ND_ASSIGN, node, assign());
     return node;
 }
@@ -222,9 +222,9 @@ static Node *equality()
     Node *node = relational();
     for (;;)
     {
-        if (consume_punct("=="))
+        if (skip("=="))
             node = new_node_binary(ND_EQ, node, relational());
-        else if (consume_punct("!="))
+        else if (skip("!="))
             node = new_node_binary(ND_NE, node, relational());
         else
             return node;
@@ -238,13 +238,13 @@ static Node *relational()
 
     for (;;)
     {
-        if (consume_punct("<"))
+        if (skip("<"))
             node = new_node_binary(ND_LT, node, add());
-        else if (consume_punct("<="))
+        else if (skip("<="))
             node = new_node_binary(ND_LE, node, add());
-        else if (consume_punct(">"))
+        else if (skip(">"))
             node = new_node_binary(ND_LT, add(), node);
-        else if (consume_punct(">="))
+        else if (skip(">="))
             node = new_node_binary(ND_LE, add(), node);
         else
             return node;
@@ -258,9 +258,9 @@ static Node *add()
 
     for (;;)
     {
-        if (consume_punct("+"))
+        if (skip("+"))
             node = new_node_binary(ND_ADD, node, mul());
-        else if (consume_punct("-"))
+        else if (skip("-"))
             node = new_node_binary(ND_SUB, node, mul());
         else
             return node;
@@ -274,9 +274,9 @@ static Node *mul()
 
     for (;;)
     {
-        if (consume_punct("*"))
+        if (skip("*"))
             node = new_node_binary(ND_MUL, node, unary());
-        else if (consume_punct("/"))
+        else if (skip("/"))
             node = new_node_binary(ND_DIV, node, unary());
         else
             return node;
@@ -286,25 +286,57 @@ static Node *mul()
 // unary = ("+" | "-")? primary
 static Node *unary()
 {
-    if (consume_punct("+"))
+    if (skip("+"))
         return primary();
-    if (consume_punct("-"))
+    if (skip("-"))
         return new_node_binary(ND_SUB, new_node_num(0), primary());
     return primary();
 }
 
-static Node *ident()
+// funcarg = expr ("," expr)*
+struct Node *funcarg()
 {
+    Node *head = expr();
+
+    Node *cur = head;
+
+    while (skip(","))
+    {
+        cur = cur->next = expr();
+    }
+
+    return head;
+}
+
+// funccall = ident "(" funcarg? ")"
+struct Node *funccall(Token *id_tok)
+{
+    Node *node = new_node(ND_FUNC_CALL);
+
+    node->id_name = id_tok->str;
+    node->id_len = id_tok->len;
+
+    expect("(");
+
+    if (skip(")"))
+    {
+        return node;
+    }
+
+    node->func_args = funcarg();
+    expect(")");
+
+    return node;
 }
 
 // primary = num
 //         | ident
-//         | ident ("(" (ident)* ")")?
+//         | ident ("(" function_args ")")?
 //         | "(" expr ")"
 static Node *primary()
 {
     // "(" expr ")"
-    if (consume_punct("("))
+    if (skip("("))
     {
         Node *node = expr();
         expect(")");
@@ -314,29 +346,14 @@ static Node *primary()
     Token *tok = consume(TK_IDENT);
     if (tok)
     {
-        if (consume_punct("("))
+        if (equal("("))
         {
             // 関数呼び出し
-            Node *node = new_node(ND_FUNC_CALL);
-            node->func_name = tok->str;
-            node->func_name_len = tok->len;
+            return funccall(tok);
+        }
 
-            // while (1)
-            // {
-            //     Node* node = primary();
-            //     if (!consume_punct(","))
-            //     {
-            //         expect(")");
-            //     }
-            // }
-            expect(")");
-            return node;
-        }
-        else
-        {
-            // ローカル変数
-            return new_node_local(tok);
-        }
+        // ローカル変数
+        return new_node_local(tok);
     }
 
     return new_node_num(expect_number());
