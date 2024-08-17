@@ -28,24 +28,23 @@ static Node *new_node_num(int val)
     return node;
 }
 
-
 static LVar *local;
-static LVar *find_lvar(Token *token)
+static LVar *find_lvar(Token *tok)
 {
     for (LVar *var = local; var; var = var->next)
     {
-        if (var->len == token->len && strncmp(var->name, token->str, var->len) == 0)
+        if (var->len == tok->len && strncmp(var->name, tok->str, var->len) == 0)
             return var;
     }
     return NULL;
 }
 
-static int new_lval(char *name, size_t len)
+static int new_lval(Token *tok)
 {
     LVar *lvar = calloc(1, sizeof(LVar));
-    lvar->name = name;
-    lvar->len = len;
-    
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+
     if (local)
         lvar->offset = local->offset + 8; // 暗黙的に int 型を割り当て
     else
@@ -58,19 +57,16 @@ static int new_lval(char *name, size_t len)
     return lvar->offset;
 }
 
-static Node* new_node_local(char* name, size_t len)
+static Node *new_node_local(Token *tok)
 {
     Node *node = new_node(ND_LVAR);
 
-    LVar *lvar = find_lvar(token);
-    if (lvar) // 既にローカル変数が定義されている場合
-    {
+    LVar *lvar = find_lvar(tok);
+
+    if (lvar)
         node->offset = lvar->offset;
-    }
-    else // 定義されていない場合、ローカル変数を登録
-    {
-        node->offset = new_lval(token->str, token->len);
-    }
+    else
+        node->offset = new_lval(tok);
 
     return node;
 }
@@ -315,15 +311,15 @@ static Node *primary()
         return node;
     }
 
-    Token *token = consume(TK_IDENT);
-    if (token)
+    Token *tok = consume(TK_IDENT);
+    if (tok)
     {
         if (consume_punct("("))
         {
             // 関数呼び出し
             Node *node = new_node(ND_FUNC_CALL);
-            node->func_name = token->str;
-            node->func_name_len = token->len;
+            node->func_name = tok->str;
+            node->func_name_len = tok->len;
 
             // while (1)
             // {
@@ -339,7 +335,7 @@ static Node *primary()
         else
         {
             // ローカル変数
-            return new_node_local(token->str, token->len);
+            return new_node_local(tok);
         }
     }
 

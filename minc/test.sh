@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 
 # interp()
 # {
@@ -11,7 +11,7 @@
 #     echo "ret: $?"
 # }
 
-# interp "a = 100 / 2;"
+# interp "a = 1; a;"
 
 assert()
 {
