@@ -34,6 +34,7 @@ assert()
 }
 
 assert 6 "sum(1,1,1,1,1,1);"
+assert 6 "a=b=c=d=e=f=1; sum(a,b,c,d,e,f);"
 assert 11 "sum(sum(1,1,1,1,1,1),1,1,1,1,1);"
 assert 16 "sum(sum(sum(1,1,1,1,1,1),1,1,1,1,1),1,1,1,1,1);"
 
