@@ -7,18 +7,30 @@
 #include "minc.h"
 
 #include <stdio.h>
+#include <stdarg.h>
+
+static void println(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    fprintf(stdout, "\n");
+}
 
 static void gen_lvalue(Node *node)
 {
     if (node->kind != ND_LVAR)
         error("代入の左辺値が変数ではありません");
 
-    printf("  mov rax, rbp\n");              // スタックベースポインタを取得
-    printf("  sub rax, %d\n", node->offset); // オフセット分スタックポインタを減算
-    // printf("  push rax\n");                  // 得られたアドレス値を保存
+    println("  mov rax, rbp");              // スタックベースポインタを取得
+    println("  sub rax, %d", node->offset); // オフセット分スタックポインタを減算
 }
 
-static int label_counter;
+static int gen_unique()
+{
+    static int count;
+    return count++;
+}
 
 // ASTをたどり、アセンブリを吐く
 void gen(Node *node)
@@ -28,78 +40,85 @@ void gen(Node *node)
     case ND_ASSIGN:
         // 左辺値を rdi
         gen_lvalue(node->lhs);
-        printf("  push rax\n");
+        println("  push rax");
 
         // 右辺値を rax
         gen(node->rhs);
 
-        printf("  pop rdi\n");
+        println("  pop rdi");
 
         // 代入
-        printf("  mov [rdi], rax\n");
+        println("  mov [rdi], rax");
         return;
 
-    case ND_LVAR: // ローカル変数
-        gen_lvalue(node);  // -> rax
-        printf("  mov rax, [rax]\n"); // アドレス先の値をロード
+    case ND_LVAR:                    // ローカル変数
+        gen_lvalue(node);            // -> rax
+        println("  mov rax, [rax]"); // アドレス先の値をロード
         return;
 
     case ND_RETURN:
         gen(node->return_expr);
-        printf("  mov rsp, rbp\n"); // スタックポインタを復元
-        printf("  pop rbp\n");      // ベースポインタを復元
-        printf("  ret\n");
+        println("  mov rsp, rbp"); // スタックポインタを復元
+        println("  pop rbp");      // ベースポインタを復元
+        println("  ret");
         return;
 
     case ND_IF:
+    {
+        int count = gen_unique();
         if (node->else_stmt) // if .. else ..
         {
             gen(node->if_state);
-            printf("  cmp rax, 0\n");
-            printf("  je .Lif.else%d\n", label_counter); // 条件式が0である場合elseへ飛ばす
+            println("  cmp rax, 0");
+            println("  je .Lif.else%d", count); // 条件式が0である場合elseへ飛ばす
             gen(node->if_stmt);
-            printf("  jmp .Lif.end%d\n", label_counter);
-            printf(".Lif.else%d:\n", label_counter);
+            println("  jmp .Lif.end%d", count);
+            println(".Lif.else%d:", count);
             gen(node->else_stmt);
-            printf(".Lif.end%d:\n", label_counter);
+            println(".Lif.end%d:", count);
         }
         else // if ..
         {
             gen(node->if_state);
-            printf("  cmp rax, 0\n");
-            printf("  je .Lif.end%d\n", label_counter); // 条件式が0である場合終了
+            println("  cmp rax, 0");
+            println("  je .Lif.end%d", count); // 条件式が0である場合終了
             gen(node->if_stmt);
-            printf(".Lif.end%d:\n", label_counter);
+            println(".Lif.end%d:", count);
         }
-        label_counter++;
         return;
+    }
 
     case ND_WHILE:
-        printf(".Lwhile.begin%d:\n", label_counter);
+    {
+        int count = gen_unique();
+        println(".Lwhile.begin%d:", count);
 
         gen(node->while_state);
-        printf("  cmp rax, 0\n");
-        printf("  je .Lwhile.end%d\n", label_counter);
+        println("  cmp rax, 0");
+        println("  je .Lwhile.end%d", count);
 
         gen(node->while_stmt);
-        printf("  jmp .Lwhile.begin%d\n", label_counter);
-        printf(".Lwhile.end%d:\n", label_counter);
-        label_counter++;
+        println("  jmp .Lwhile.begin%d", count);
+        println(".Lwhile.end%d:", count);
         return;
+    }
 
     case ND_FOR:
+    {
+        int count = gen_unique();
+
         if (node->for_init)
         {
             gen(node->for_init);
         }
 
-        printf(".Lfor.begin%d:\n", label_counter); // ループ開始
+        println(".Lfor.begin%d:", count); // ループ開始
 
         if (node->for_cond)
         {
             gen(node->for_cond);
-            printf("  cmp rax, 0\n");
-            printf("  je .Lfor.end%d\n", label_counter); // 条件不成立で終了へジャンプ
+            println("  cmp rax, 0");
+            println("  je .Lfor.end%d", count); // 条件不成立で終了へジャンプ
         }
 
         gen(node->for_stmt);
@@ -109,11 +128,11 @@ void gen(Node *node)
             gen(node->for_loop);
         }
 
-        printf("  jmp .Lfor.begin%d\n", label_counter); // 先頭へ戻る
-        printf(".Lfor.end%d:\n", label_counter);        // ループ終了
+        println("  jmp .Lfor.begin%d", count); // 先頭へ戻る
+        println(".Lfor.end%d:", count);        // ループ終了
 
-        label_counter++;
         return;
+    }
 
     case ND_BLOCK:
         for (int i = 0; i < node->block_len; ++i)
@@ -123,68 +142,68 @@ void gen(Node *node)
         return;
 
     case ND_FUNC_CALL:
-    
+
         // 第1~第6引数 : RDI, RSI, RDX, RCX, R8, R9
-        const char* arg_reg[] = { "rdi", "rsi", "rdx", "rcx", "r8", "r9" };
+        const char *arg_reg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
         int index = 0;
 
-        for (Node* cur = node->func_args; cur; cur = cur->next)
+        for (Node *cur = node->func_args; cur; cur = cur->next)
         {
             gen(cur);
-            printf("  mov %s, rax\n", arg_reg[index]);
+            println("  mov %s, rax", arg_reg[index]);
             ++index;
         }
 
-        printf("  call %.*s\n", node->id_len, node->id_name);
+        println("  call %.*s", node->id_len, node->id_name);
 
         return;
 
     case ND_NUM:
-        printf("  mov rax, %d\n", node->val);
+        println("  mov rax, %d", node->val);
 
         return;
     }
 
-    gen(node->rhs);  // -> rdi
-    printf("  push rax\n");
-    gen(node->lhs);  // -> rax
-    printf("  pop rdi\n");
+    gen(node->rhs); // -> rdi
+    println("  push rax");
+    gen(node->lhs); // -> rax
+    println("  pop rdi");
 
     switch (node->kind)
     {
     case ND_ADD: // +
-        printf("  add rax, rdi\n");
+        println("  add rax, rdi");
         break;
     case ND_SUB: // -
-        printf("  sub rax, rdi\n");
+        println("  sub rax, rdi");
         break;
     case ND_MUL: // *
-        printf("  imul rax, rdi\n");
+        println("  imul rax, rdi");
         break;
     case ND_DIV: // /
-        printf("  cqo\n");
-        printf("  idiv rdi\n");
+        println("  cqo");
+        println("  idiv rdi");
         break;
 
     case ND_EQ: // ==
-        printf("  cmp rax, rdi\n");
-        printf("  sete al\n");       // al(arxの下部8bit) に比較結果をセット
-        printf("  movzb rax, al\n"); // 上部56bitをゼロクリア (seteは8bitレジスタにのみセット可能なのでこのような書き方となる)
+        println("  cmp rax, rdi");
+        println("  sete al");       // al(arxの下部8bit) に比較結果をセット
+        println("  movzb rax, al"); // 上部56bitをゼロクリア (seteは8bitレジスタにのみセット可能なのでこのような書き方となる)
         break;
     case ND_NE: // !=
-        printf("  cmp rax, rdi\n");
-        printf("  setne al\n");
-        printf("  movzb rax, al\n");
+        println("  cmp rax, rdi");
+        println("  setne al");
+        println("  movzb rax, al");
         break;
     case ND_LT: // <
-        printf("  cmp rax, rdi\n");
-        printf("  setl al\n");
-        printf("  movzb rax, al\n");
+        println("  cmp rax, rdi");
+        println("  setl al");
+        println("  movzb rax, al");
         break;
     case ND_LE: // <=
-        printf("  cmp rax, rdi\n");
-        printf("  setle al\n");
-        printf("  movzb rax, al\n");
+        println("  cmp rax, rdi");
+        println("  setle al");
+        println("  movzb rax, al");
         break;
 
     default:
