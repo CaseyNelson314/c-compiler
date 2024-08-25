@@ -48,7 +48,7 @@ static int new_lval(Token *tok)
     if (local)
         lvar->offset = local->offset + 8; // 暗黙的に int 型を割り当て
     else
-        lvar->offset = 0;
+        lvar->offset = 8;
 
     // 先頭へ自身を追加
     lvar->next = local;
