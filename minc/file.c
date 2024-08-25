@@ -35,6 +35,12 @@ char* open_file(char *filepath)
         fwrite(buf, 1, len, out_fd);
     }
 
+    // 文字列が \n\0 と終わるように加工
+    if (out_len == 0 || out_buf[out_len - 1] != '\n')
+    {
+        fputc('\n', out_fd);
+    }
+
     fputc('\0', out_fd);
     fflush(out_fd);
 

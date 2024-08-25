@@ -10,7 +10,7 @@
 
 Token *token;
 
-bool equal(Token* tok, char *op)
+bool equal(Token *tok, char *op)
 {
     return tok->kind == TK_PUNCT &&
            strlen(op) == tok->len &&
@@ -64,11 +64,11 @@ int expect_number()
     return val;
 }
 
-Token* expect_ident()
+Token *expect_ident()
 {
     if (token->kind != TK_IDENT)
         error_at(token->str, "識別子ではありません");
-    Token* cur = token;
+    Token *cur = token;
     token = token->next;
     return cur;
 }
@@ -134,6 +134,17 @@ Token *tokenize(char *p)
         if (isspace(*p) || *p == '\n' || *p == '\r')
         {
             p += 1;
+            continue;
+        }
+
+        // comment
+        if (!strncmp(p, "//", 2))
+        {
+            p += 2;
+
+            while (*p != '\n')
+                ++p;
+
             continue;
         }
 

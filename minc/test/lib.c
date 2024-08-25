@@ -1,8 +1,9 @@
 #include <stdlib.h>
 
 // このコードは本コンパイラによってコンパイルされず、GCC等がコンパイルする
-
-void call_exit(int code)
+int assert(int actual, int expect)
 {
-    exit(code);
+    if (actual == expect)
+        return 0;
+    exit(1);
 }
