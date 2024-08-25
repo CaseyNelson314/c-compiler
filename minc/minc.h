@@ -158,10 +158,6 @@ struct Node
     Node *for_loop;
     Node *for_stmt;
 
-    // block
-    Node *block[100];
-    int block_len;
-
     // functon call
     Node *func_args;
 

@@ -100,9 +100,7 @@ Node *parse()
     Node *cur = head;
     while (!at_eof())
     {
-        // cur = cur->next = funcdef();
-        head->block[head->block_len] = funcdef();
-        head->block_len++;
+        cur = cur->next = funcdef();
     }
     return head;
 }
@@ -156,10 +154,10 @@ static Node *stmt()
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;
 
+        Node* cur = node;
         while (!skip("}"))
         {
-            node->block[node->block_len] = stmt();
-            ++node->block_len;
+            cur = cur->next = stmt();
         }
 
         return node;

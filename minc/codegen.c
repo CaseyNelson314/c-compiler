@@ -135,16 +135,14 @@ void gen(Node *node)
     }
 
     case ND_ROOT:
-
         printf(".intel_syntax noprefix\n");
         printf(".global main\n");
-
-        // goto case ND_BLOCK
+        // goto case ND_BLOCK.
 
     case ND_BLOCK:
-        for (int i = 0; i < node->block_len; ++i)
+        for (Node* cur = node->next; cur; cur = cur->next)
         {
-            gen(node->block[i]);
+            gen(cur);
         }
         return;
 
