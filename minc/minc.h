@@ -113,6 +113,7 @@ typedef enum
     ND_WHILE,
     ND_FOR,
 
+    ND_ROOT, // program
     ND_BLOCK, // statment group
 
     ND_FUNC_CALL, // function call

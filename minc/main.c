@@ -7,24 +7,17 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
-    {
-        fprintf(stderr, "引数の個数が正しくありません\n");
-        return 1;
+    if (argc != 2) {
+        error("引数の個数が正しくありません");
     }
 
     user_input = argv[1];
+    
     token = tokenize(argv[1]);
+
     Node *node = parse();
 
-    printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-
-    while (node)
-    {
-        gen(node);
-        node = node->next;
-    }
+    gen(node);
 
     return 0;
 }

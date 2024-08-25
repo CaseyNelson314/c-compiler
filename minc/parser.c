@@ -61,7 +61,7 @@ static Node *new_node_local()
 {
     Node *node = new_node(ND_LVAR);
 
-    Token* tok = expect_ident();
+    Token *tok = expect_ident();
 
     LVar *lvar = find_lvar(tok);
 
@@ -95,13 +95,16 @@ static Node *primary();
 // program = (function-definition)*
 Node *parse()
 {
-    Node head = {};
-    Node *cur = &head;
+    Node *head = calloc(1, sizeof(Node));
+    head->kind = ND_ROOT;
+    Node *cur = head;
     while (!at_eof())
     {
-        cur = cur->next = funcdef();
+        // cur = cur->next = funcdef();
+        head->block[head->block_len] = funcdef();
+        head->block_len++;
     }
-    return head.next;
+    return head;
 }
 
 // identlist = ident ("," ident)*
