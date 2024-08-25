@@ -4,18 +4,15 @@
 
 char* open_file(char *filepath)
 {
-    FILE *in_fd;
     if (filepath[0] == '>')
     {
         return filepath + 1/* > */;
     }
-    else
+
+    FILE* in_fd = fopen(filepath, "r");
+    if (in_fd == NULL)
     {
-        in_fd = fopen(filepath, "r");
-        if (in_fd == NULL)
-        {
-            error("ファイルを開けませんでした");
-        }
+        error("ファイルを開けませんでした");
     }
 
     char *out_buf;
