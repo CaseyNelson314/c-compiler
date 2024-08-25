@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
         error("引数の個数が正しくありません");
     }
 
-    user_input = argv[1];
-    
-    token = tokenize(argv[1]);
+    user_input = open_file(argv[1]);
+
+    token = tokenize(user_input);
 
     Node *node = parse();
 

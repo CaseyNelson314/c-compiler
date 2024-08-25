@@ -130,8 +130,8 @@ Token *tokenize(char *p)
 
     while (*p)
     {
-        // space
-        if (isspace(*p))
+        // space newline
+        if (isspace(*p) || *p == '\n' || *p == '\r')
         {
             p += 1;
             continue;

@@ -13,6 +13,23 @@
 
 # interp "a = 1; a;"
 
+test()
+{
+    filepath="$1"
+
+    ./main "$filepath" > tmp.s
+    cc -o tmp tmp.s ./test/lib.c
+    ./tmp
+
+    actual="$?"
+
+    if [ "$actual" = 0 ]; then
+        echo "[o] $filepath"
+    else
+        echo "[x] $filepath"
+    fi
+}
+
 assert()
 {
     # exit
@@ -20,7 +37,7 @@ assert()
     expected="$1"
     input="$2"
 
-    ./main "$input" > tmp.s
+    ./main ">$input" > tmp.s
     cc -o tmp tmp.s function.c
     ./tmp
     actual="$?"
@@ -32,6 +49,8 @@ assert()
         exit 1
     fi
 }
+
+test "./test/test.c"
 
 assert 1 "main(){ return 1; }"
 assert 1 "f(){ return 1; } main() { return f(); }"
@@ -52,23 +71,6 @@ assert 12 "main() { 4 * (1 + 2); }"
 assert 10 "main() { -10 + 20; }"
 assert 10 "main() { -(-10); }"
 assert 10 "main() { - (+ (-10)); }"
-
-assert 1 "main() { 2 > 1; }"
-assert 0 "main() { 1 > 2; }"
-assert 0 "main() { 2 > 2; }"
-assert 0 "main() { 2 < 1; }"
-assert 0 "main() { 2 < 2; }"
-assert 1 "main() { 1 < 2; }"
-assert 1 "main() { 2 >= 1; }"
-assert 0 "main() { 1 >= 2; }"
-assert 1 "main() { 1 >= 1; }"
-assert 0 "main() { 2 <= 1; }"
-assert 1 "main() { 1 <= 2; }"
-assert 1 "main() { 1 <= 1; }"
-assert 1 "main() { 1 == 1; }"
-assert 0 "main() { 1 == 0; }"
-assert 1 "main() { 1 != 0; }"
-assert 0 "main() { 1 != 1; }"
 
 assert 0 "main() { a = 0; a; }"
 assert 100 "main() { a = b = 100; }"
