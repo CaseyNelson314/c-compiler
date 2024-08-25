@@ -1,3 +1,5 @@
+// compare operator
+
 main()
 {
     assert(2 > 1, 1);
