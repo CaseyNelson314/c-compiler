@@ -95,8 +95,7 @@ static Node *primary();
 // program = (function-definition)*
 Node *parse()
 {
-    Node *head = calloc(1, sizeof(Node));
-    head->kind = ND_ROOT;
+    Node *head = new_node(ND_ROOT);
     Node *cur = head;
     while (!at_eof())
     {
@@ -150,24 +149,19 @@ static Node *stmt()
     // "{" stmt* "}"
     if (skip("{"))
     {
-        // ステートメントの線形リストを構築
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_BLOCK;
-
+        Node *node = new_node(ND_BLOCK);
         Node* cur = node;
         while (!skip("}"))
         {
             cur = cur->next = stmt();
         }
-
         return node;
     }
 
     // "if" "(" expr ")" stmt ("else" stmt)?
     if (consume_kind(TK_IF))
     {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_IF;
+        Node *node = new_node(ND_IF);
 
         expect("(");
         node->if_state = expr();
@@ -185,8 +179,7 @@ static Node *stmt()
     // "while" "(" expr ")" stmt
     if (consume_kind(TK_WHILE))
     {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_WHILE;
+        Node *node = new_node(ND_WHILE);
 
         expect("(");
         node->while_state = expr();
@@ -199,8 +192,7 @@ static Node *stmt()
     // "for" "(" expr? ";" expr? ";" expr? ")" stmt
     if (consume_kind(TK_FOR))
     {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_FOR;
+        Node *node = new_node(ND_FOR);        
 
         expect("(");
 
@@ -355,14 +347,11 @@ static Node *unary()
 struct Node *funcarg()
 {
     Node *head = expr();
-
     Node *cur = head;
-
     while (skip(","))
     {
         cur = cur->next = expr();
     }
-
     return head;
 }
 
