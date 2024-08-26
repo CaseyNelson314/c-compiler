@@ -144,7 +144,7 @@ static Node *funcdef()
 //      | "if" "(" expr ")" stmt ("else" stmt)?
 //      | "while" "(" expr ")" stmt
 //      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-//      | "return" expr ";"
+//      | "return" expr? ";"
 static Node *stmt()
 {
     // "{" stmt* "}"
@@ -230,13 +230,20 @@ static Node *stmt()
         return node;
     }
 
-    // "return" expr ";"
+    // "return" expr? ";"
     if (consume_kind(TK_RETURN))
     {
         Node *node = new_node(ND_RETURN);
-        node->return_expr = expr();
-        expect(";");
-        return node;
+        if (skip(";"))
+        {
+            return node;
+        }
+        else
+        {
+            node->return_expr = expr();
+            expect(";");
+            return node;
+        }
     }
 
     // expr? ";"

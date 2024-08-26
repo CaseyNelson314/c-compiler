@@ -1,5 +1,6 @@
 f0() { return 0; }
 f1() { return 1; }
+f2() { return; }
 
 main()
 {

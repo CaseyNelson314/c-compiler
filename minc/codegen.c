@@ -57,7 +57,10 @@ void gen(Node *node)
         return;
 
     case ND_RETURN:
-        gen(node->return_expr);
+        if (node->return_expr)
+        {
+            gen(node->return_expr);
+        }
         println("  mov rsp, rbp"); // スタックポインタを復元
         println("  pop rbp");      // ベースポインタを復元
         println("  ret");
@@ -165,7 +168,7 @@ void gen(Node *node)
     }
 
     case ND_FUNC_DEF:
-
+    {
         println("%.*s:", node->id_len, node->id_name); // 関数定義
 
         println("  push rbp"); // ベースポインタを保持
@@ -190,6 +193,7 @@ void gen(Node *node)
         println("  ret");
 
         return;
+    }
 
     case ND_NULL:
         return;
