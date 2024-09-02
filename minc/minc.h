@@ -34,6 +34,9 @@ typedef enum
     TK_ELSE,
     TK_WHILE,
     TK_FOR,
+    TK_SWITCH,
+    TK_CASE,
+    TK_BREAK,
 
     TK_EOF, // 入力の終わりを表すトークン
 } TokenKind;
@@ -114,6 +117,8 @@ typedef enum
     ND_IF,
     ND_WHILE,
     ND_FOR,
+    ND_SWITCH,
+    ND_CASE,
 
     ND_ROOT, // program
     ND_BLOCK, // statment group
@@ -159,6 +164,10 @@ struct Node
     Node *for_cond;
     Node *for_loop;
     Node *for_stmt;
+
+    // switch
+    Node *switch_cond;
+    Node *switch_stmt;
 
     // functon call
     Node *func_args;

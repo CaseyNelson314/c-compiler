@@ -143,6 +143,7 @@ static Node *funcdef()
 //      | "if" "(" expr ")" stmt ("else" stmt)?
 //      | "while" "(" expr ")" stmt
 //      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//      | "switch" "(" expr ")" stmt
 //      | "return" expr? ";"
 static Node *stmt()
 {
@@ -150,7 +151,7 @@ static Node *stmt()
     if (skip("{"))
     {
         Node *node = new_node(ND_BLOCK);
-        Node* cur = node;
+        Node *cur = node;
         while (!skip("}"))
         {
             cur = cur->next = stmt();
@@ -192,7 +193,7 @@ static Node *stmt()
     // "for" "(" expr? ";" expr? ";" expr? ")" stmt
     if (consume_kind(TK_FOR))
     {
-        Node *node = new_node(ND_FOR);        
+        Node *node = new_node(ND_FOR);
 
         expect("(");
 
@@ -221,6 +222,21 @@ static Node *stmt()
 
         return node;
     }
+
+    // "switch" "(" expr ")" stmt
+    if (consume_kind(TK_SWITCH))
+    {
+        Node* node = new_node(ND_SWITCH);
+
+        expect("(");
+
+        node->switch_cond = expr();
+
+        expect(")");
+
+        node->switch_stmt = stmt();
+    }
+
 
     // "return" expr? ";"
     if (consume_kind(TK_RETURN))

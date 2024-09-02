@@ -188,6 +188,30 @@ Token *tokenize(char *p)
             continue;
         }
 
+        // switch
+        if (!strncmp(p, "switch", 6) && !is_ident_body(p[6]))
+        {
+            cur = new_token(TK_SWITCH, cur, p, 6);
+            p += 6;
+            continue;
+        }
+
+        // case
+        if (!strncmp(p, "case", 4) && !is_ident_body(p[4]))
+        {
+            cur = new_token(TK_CASE, cur, p, 4);
+            p += 4;
+            continue;
+        }
+
+        // break
+        if (!strncmp(p, "break", 5) && !is_ident_body(p[5]))
+        {
+            cur = new_token(TK_BREAK, cur, p, 5);
+            p += 5;
+            continue;
+        }
+
         // multi letter punctuator
         if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">="))
         {
